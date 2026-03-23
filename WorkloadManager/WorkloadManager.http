@@ -1,0 +1,6 @@
+@WorkloadManager_HostAddress = http://localhost:5279
+
+GET {{WorkloadManager_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
