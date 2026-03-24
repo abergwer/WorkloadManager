@@ -68,10 +68,6 @@ namespace WorkloadManager.Database
                 entity.Property(e => e.ErrorDetails)
                     .HasColumnType("text");
 
-                entity.Property(e => e.IdempotencyKey)
-                    .HasMaxLength(255)
-                    .IsRequired(false);
-
                 entity.Property(e => e.CreatedAt)
                     .IsRequired()
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -84,8 +80,6 @@ namespace WorkloadManager.Database
                 entity.HasIndex(e => e.Status);
                 entity.HasIndex(e => e.Type);
                 entity.HasIndex(e => e.CreatedAt);
-                entity.HasIndex(e => e.IdempotencyKey)
-                    .IsUnique();
 
                 // One-to-many relationship with JobLog
                 entity.HasMany(e => e.Logs)

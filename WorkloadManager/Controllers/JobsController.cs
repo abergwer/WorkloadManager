@@ -111,7 +111,6 @@ namespace WorkloadManager.Controllers
                         trackedJob.CreatedAt,
                         trackedJob.StartedAt,
                         trackedJob.CompletedAt,
-                        trackedJob.IdempotencyKey
                     },
                     Result = result
                 });
@@ -155,7 +154,6 @@ namespace WorkloadManager.Controllers
                         trackedJob.CreatedAt,
                         trackedJob.StartedAt,
                         trackedJob.CompletedAt,
-                        trackedJob.IdempotencyKey,
                         trackedJob.ErrorMessage
                     },
                     Result = result

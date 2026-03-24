@@ -93,11 +93,6 @@
         public DateTime UpdatedAt { get; set; }
         
         /// <summary>
-        /// Idempotency key for preventing duplicate job processing
-        /// </summary>
-        public string? IdempotencyKey { get; set; }
-        
-        /// <summary>
         /// Navigation property for associated logs
         /// </summary>
         public ICollection<JobLog> Logs { get; set; } = new List<JobLog>();

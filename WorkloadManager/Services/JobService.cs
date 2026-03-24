@@ -101,11 +101,6 @@ namespace WorkloadManager.Services
                 builder.WithScheduledTime(request.ScheduledFor.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
-            {
-                builder.WithIdempotencyKey(request.IdempotencyKey);
-            }
-
             var job = builder.Build();
             return await _repository.CreateJobAsync(job, cancellationToken);
         }
@@ -208,7 +203,6 @@ namespace WorkloadManager.Services
                         trackedJob.CreatedAt,
                         trackedJob.StartedAt,
                         trackedJob.CompletedAt,
-                        trackedJob.IdempotencyKey
                     },
                     Result = result,
                     ExecutionTimeMs = (trackedJob.CompletedAt - trackedJob.StartedAt)?.TotalMilliseconds

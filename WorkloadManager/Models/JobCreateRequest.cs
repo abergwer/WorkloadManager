@@ -37,9 +37,5 @@ namespace WorkloadManager.Models
         /// </summary>
         public DateTime? ScheduledFor { get; set; }
 
-        /// <summary>
-        /// Optional idempotency key for duplicate prevention
-        /// </summary>
-        public string? IdempotencyKey { get; set; }
     }
 }

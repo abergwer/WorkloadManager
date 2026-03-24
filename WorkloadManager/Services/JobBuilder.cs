@@ -21,8 +21,7 @@ namespace WorkloadManager.Services
                 UpdatedAt = DateTime.UtcNow,
                 Status = JobStatus.Pending,
                 Priority = 5,
-                MaxAttempts = 3,
-                IdempotencyKey = Guid.NewGuid().ToString()
+                MaxAttempts = 3
             };
         }
 
@@ -59,13 +58,6 @@ namespace WorkloadManager.Services
             {
                 _job.Status = JobStatus.Scheduled;
             }
-            return this;
-        }
-
-        public JobBuilder WithIdempotencyKey(string? key)
-        {
-            if (!string.IsNullOrWhiteSpace(key))
-                _job.IdempotencyKey = key;
             return this;
         }
 

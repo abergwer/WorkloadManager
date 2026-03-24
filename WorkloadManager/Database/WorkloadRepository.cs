@@ -72,16 +72,6 @@ namespace WorkloadManager.Database
         }
 
         /// <summary>
-        /// Get a job by idempotency key for duplicate prevention
-        /// </summary>
-        public async Task<Job?> GetJobByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
-        {
-            return await _context.Jobs
-                .Include(j => j.Logs)
-                .FirstOrDefaultAsync(j => j.IdempotencyKey == idempotencyKey, cancellationToken);
-        }
-
-        /// <summary>
         /// Update an existing job
         /// </summary>
         public async Task<Job> UpdateJobAsync(Job job, CancellationToken cancellationToken = default)
