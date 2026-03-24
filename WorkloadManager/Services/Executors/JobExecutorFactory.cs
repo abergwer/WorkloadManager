@@ -1,6 +1,6 @@
 using WorkloadManager.Models;
 
-namespace WorkloadManager.Services
+namespace WorkloadManager.Services.Executors
 {
     public class JobExecutorFactory
     {
