@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using WorkloadManager.Models;
 using WorkloadManager.Services;
+using WorkloadManager.Database;
 
 namespace WorkloadManager.Services.BackgroundService
 {
@@ -23,23 +24,34 @@ namespace WorkloadManager.Services.BackgroundService
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var jobService = scope.ServiceProvider.GetRequiredService<JobService>();
+                    var repository = scope.ServiceProvider.GetRequiredService<WorkloadRepository>();
                     var jobs = await jobService.GetAllJobsAsync(cancellationToken: stoppingToken);
                     var now = DateTime.UtcNow;
 
                     // Get jobs that are ready to execute (Scheduled or Pending, and scheduled time has passed)
-                    var jobsToExecute = jobs.Where(j =>
+                    var jobsToConsider = jobs.Where(j =>
                         (j.Status == JobStatus.Scheduled || j.Status == JobStatus.Pending) &&
                         (j.ScheduledFor == null || j.ScheduledFor <= now)
                     ).ToList();
 
-                    // Execute each ready job using the executor services
-                    foreach (var job in jobsToExecute)
+                    // Process each job with atomic claiming to prevent duplicate execution
+                    foreach (var job in jobsToConsider)
                     {
                         try
                         {
-                            Console.WriteLine($"Executing job {job.Id}: {job.Name}");
-                            var (updatedJob, result) = await jobService.ExecuteJobWithTrackingAsync(job, stoppingToken);
-                            Console.WriteLine($"Job {job.Id} completed with status: {updatedJob.Status}");
+                            // Atomically claim the job - only succeeds for one instance
+                            var claimedJob = await repository.TryClaimJobForExecutionAsync(job.Id, stoppingToken);
+                            
+                            if (claimedJob == null)
+                            {
+                                // Another instance already claimed this job
+                                Console.WriteLine($"Job {job.Id} was claimed by another instance, skipping");
+                                continue;
+                            }
+
+                            Console.WriteLine($"Executing job {claimedJob.Id}: {claimedJob.Name}");
+                            var (updatedJob, result) = await jobService.ExecuteJobWithTrackingAsync(claimedJob, stoppingToken);
+                            Console.WriteLine($"Job {claimedJob.Id} completed with status: {updatedJob.Status}");
                         }
                         catch (Exception ex)
                         {

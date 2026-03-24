@@ -207,6 +207,31 @@ namespace WorkloadManager.Database
             await _context.SaveChangesAsync(cancellationToken);
             return oldLogs.Count;
         }
+
+        /// <summary>
+        /// Atomically claim a job for execution using a single UPDATE statement
+        /// Only succeeds if job is in Scheduled or Pending status
+        /// Returns the updated job if successfully claimed, null if already claimed by another instance
+        /// </summary>
+        public async Task<Job?> TryClaimJobForExecutionAsync(int jobId, CancellationToken cancellationToken = default)
+        {
+            var now = DateTime.UtcNow;
+            
+            // Atomic UPDATE: only updates if status is Scheduled or Pending
+            var rowsAffected = await _context.Database.ExecuteSqlInterpolatedAsync(
+                $@"UPDATE ""Jobs"" 
+                   SET ""Status"" = {(int)JobStatus.Processing}, ""StartedAt"" = {now}, ""UpdatedAt"" = {now}
+                   WHERE ""Id"" = {jobId} 
+                   AND (""Status"" = {(int)JobStatus.Scheduled} OR ""Status"" = {(int)JobStatus.Pending})",
+                cancellationToken);
+
+            // If no rows were affected, another instance already claimed this job
+            if (rowsAffected == 0)
+                return null;
+
+            // Fetch and return the updated job
+            return await GetJobByIdAsync(jobId, cancellationToken);
+        }
     }
 }
 
