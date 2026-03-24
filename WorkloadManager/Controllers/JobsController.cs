@@ -22,38 +22,7 @@ namespace WorkloadManager.Controllers
         [HttpGet("types")]
         public IActionResult GetJobTypes()
         {
-            var jobTypes = new[]
-            {
-                new
-                {
-                    Type = "email",
-                    Description = "Simulates sending an email",
-                    Processing = "1-3 seconds",
-                    Returns = "Success with mock message ID"
-                },
-                new
-                {
-                    Type = "webhook",
-                    Description = "Simulates calling an external webhook",
-                    Processing = "1-2 seconds",
-                    Returns = "80% success, 20% simulated failure"
-                },
-                new
-                {
-                    Type = "report",
-                    Description = "Simulates generating a report",
-                    Processing = "3-5 seconds",
-                    Returns = "Mock file URL"
-                },
-                new
-                {
-                    Type = "batch",
-                    Description = "Processes multiple items with progress tracking",
-                    Processing = "Multiple items with delays",
-                    Returns = "Summary with processed items"
-                }
-            };
-
+            var jobTypes = _jobService.GetAvailableJobTypes();
             return Ok(jobTypes);
         }
 
@@ -61,33 +30,54 @@ namespace WorkloadManager.Controllers
         /// Create a new job with detailed parameters
         /// </summary>
         [HttpPost("create")]
-        public IActionResult CreateJob([FromBody] JobCreateRequest request)
+        public async Task<IActionResult> CreateJob([FromBody] JobCreateRequest request)
         {
+            // Validate request
+            if (request == null)
+            {
+                return BadRequest(new { error = "Request body cannot be empty" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Type))
+            {
+                return BadRequest(new { error = "Job type is required" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest(new { error = "Job name is required" });
+            }
+
             try
             {
-                var builder = new JobBuilder(request.Type, request.Name)
-                    .WithDescription(request.Description)
-                    .WithPayload(request.Payload)
-                    .WithPriority(request.Priority)
-                    .WithMaxAttempts(request.MaxAttempts);
-
-                if (request.ScheduledFor.HasValue)
-                {
-                    builder.WithScheduledTime(request.ScheduledFor.Value);
-                }
-
-                if (!string.IsNullOrEmpty(request.IdempotencyKey))
-                {
-                    builder.WithIdempotencyKey(request.IdempotencyKey);
-                }
-
-                var job = builder.Build();
-
-                return Ok(new
+                var job = await _jobService.CreateJobFromRequestAsync(request);
+                return CreatedAtAction(nameof(GetJob), new { id = job.Id }, new
                 {
                     Message = "Job created successfully",
                     Job = job
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, details = ex.InnerException?.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get a job by ID
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetJob(int id)
+        {
+            try
+            {
+                var job = await _jobService.GetJobByIdAsync(id);
+                if (job == null)
+                {
+                    return NotFound(new { error = "Job not found" });
+                }
+
+                return Ok(job);
             }
             catch (Exception ex)
             {
@@ -103,47 +93,25 @@ namespace WorkloadManager.Controllers
         {
             try
             {
-                var job = new JobBuilder(jobType, $"{jobType} Job")
-                    .WithPriority(priority)
-                    .WithMaxAttempts(maxAttempts)
-                    .Build();
-
-                job.Status = JobStatus.Processing;
-                job.StartedAt = DateTime.UtcNow;
-
-                var result = await _jobService.ExecuteJobAsync(job);
-
-                job.Status = result.Success ? JobStatus.Completed : JobStatus.Failed;
-                job.CompletedAt = DateTime.UtcNow;
-                job.UpdatedAt = DateTime.UtcNow;
-
-                if (!result.Success)
-                {
-                    job.ErrorMessage = result.Message;
-                    job.CurrentAttempt++;
-                }
-
-                if (result.Data is Dictionary<string, object> dataDict && dataDict.ContainsKey("CompletionPercentage"))
-                {
-                    job.ProgressPercentage = (int)dataDict["CompletionPercentage"];
-                }
+                var job = _jobService.CreateTestJob(jobType, priority, maxAttempts);
+                var (trackedJob, result) = await _jobService.ExecuteJobWithTrackingAsync(job);
 
                 return Ok(new
                 {
                     Job = new
                     {
-                        job.Id,
-                        job.Type,
-                        job.Name,
-                        job.Status,
-                        job.Priority,
-                        job.CurrentAttempt,
-                        job.MaxAttempts,
-                        job.ProgressPercentage,
-                        job.CreatedAt,
-                        job.StartedAt,
-                        job.CompletedAt,
-                        job.IdempotencyKey
+                        trackedJob.Id,
+                        trackedJob.Type,
+                        trackedJob.Name,
+                        trackedJob.Status,
+                        trackedJob.Priority,
+                        trackedJob.CurrentAttempt,
+                        trackedJob.MaxAttempts,
+                        trackedJob.ProgressPercentage,
+                        trackedJob.CreatedAt,
+                        trackedJob.StartedAt,
+                        trackedJob.CompletedAt,
+                        trackedJob.IdempotencyKey
                     },
                     Result = result
                 });
@@ -169,38 +137,26 @@ namespace WorkloadManager.Controllers
             {
                 job.CreatedAt = DateTime.UtcNow;
                 job.UpdatedAt = DateTime.UtcNow;
-                job.Status = JobStatus.Processing;
-                job.StartedAt = DateTime.UtcNow;
 
-                var result = await _jobService.ExecuteJobAsync(job);
-
-                job.Status = result.Success ? JobStatus.Completed : JobStatus.Failed;
-                job.CompletedAt = DateTime.UtcNow;
-                job.UpdatedAt = DateTime.UtcNow;
-
-                if (!result.Success)
-                {
-                    job.ErrorMessage = result.Message;
-                    job.CurrentAttempt++;
-                }
+                var (trackedJob, result) = await _jobService.ExecuteJobWithTrackingAsync(job);
 
                 return Ok(new
                 {
                     Job = new
                     {
-                        job.Id,
-                        job.Type,
-                        job.Name,
-                        job.Status,
-                        job.Priority,
-                        job.CurrentAttempt,
-                        job.MaxAttempts,
-                        job.ProgressPercentage,
-                        job.CreatedAt,
-                        job.StartedAt,
-                        job.CompletedAt,
-                        job.IdempotencyKey,
-                        job.ErrorMessage
+                        trackedJob.Id,
+                        trackedJob.Type,
+                        trackedJob.Name,
+                        trackedJob.Status,
+                        trackedJob.Priority,
+                        trackedJob.CurrentAttempt,
+                        trackedJob.MaxAttempts,
+                        trackedJob.ProgressPercentage,
+                        trackedJob.CreatedAt,
+                        trackedJob.StartedAt,
+                        trackedJob.CompletedAt,
+                        trackedJob.IdempotencyKey,
+                        trackedJob.ErrorMessage
                     },
                     Result = result
                 });
@@ -217,62 +173,19 @@ namespace WorkloadManager.Controllers
         [HttpPost("test-all")]
         public async Task<IActionResult> TestAllJobTypes()
         {
-            var results = new List<object>();
-            var jobTypes = new[] { "email", "webhook", "report", "batch" };
-            var priorities = new[] { 3, 5, 7, 10 }; // Different priorities for each job type
-
-            for (int i = 0; i < jobTypes.Length; i++)
+            try
             {
-                var jobType = jobTypes[i];
-                var priority = priorities[i];
-
-                var job = new JobBuilder(jobType, $"{jobType} Test Job")
-                    .WithDescription($"Test job for {jobType} with priority {priority}")
-                    .WithPriority(priority)
-                    .WithMaxAttempts(3)
-                    .Build();
-
-                job.Status = JobStatus.Processing;
-                job.StartedAt = DateTime.UtcNow;
-
-                var result = await _jobService.ExecuteJobAsync(job);
-
-                job.Status = result.Success ? JobStatus.Completed : JobStatus.Failed;
-                job.CompletedAt = DateTime.UtcNow;
-                job.UpdatedAt = DateTime.UtcNow;
-
-                if (!result.Success)
+                var results = await _jobService.ExecuteAllJobTypesAsync();
+                return Ok(new
                 {
-                    job.ErrorMessage = result.Message;
-                    job.CurrentAttempt++;
-                }
-
-                results.Add(new
-                {
-                    Job = new
-                    {
-                        job.Id,
-                        job.Type,
-                        job.Name,
-                        job.Status,
-                        job.Priority,
-                        job.CurrentAttempt,
-                        job.MaxAttempts,
-                        job.CreatedAt,
-                        job.StartedAt,
-                        job.CompletedAt,
-                        job.IdempotencyKey
-                    },
-                    Result = result,
-                    ExecutionTimeMs = (job.CompletedAt - job.StartedAt)?.TotalMilliseconds
+                    TotalJobs = results.Count,
+                    Jobs = results
                 });
             }
-
-            return Ok(new
+            catch (Exception ex)
             {
-                TotalJobs = results.Count,
-                Jobs = results
-            });
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         /// <summary>
@@ -281,11 +194,7 @@ namespace WorkloadManager.Controllers
         [HttpGet("statuses")]
         public IActionResult GetJobStatuses()
         {
-            var statuses = Enum.GetValues(typeof(JobStatus))
-                .Cast<JobStatus>()
-                .Select(s => new { Value = (int)s, Name = s.ToString() })
-                .ToList();
-
+            var statuses = _jobService.GetJobStatuses();
             return Ok(statuses);
         }
 
@@ -303,38 +212,15 @@ namespace WorkloadManager.Controllers
                     .Build();
 
                 job.Id = jobId;
-                job.CurrentAttempt++;
 
-                if (job.CurrentAttempt > job.MaxAttempts)
+                var (canRetry, retryResult) = await _jobService.RetryJobAsync(job);
+
+                if (!canRetry && retryResult is Dictionary<string, object> errorDict && errorDict.ContainsKey("error"))
                 {
-                    return BadRequest(new
-                    {
-                        error = "Max retry attempts exceeded",
-                        currentAttempt = job.CurrentAttempt,
-                        maxAttempts = job.MaxAttempts
-                    });
+                    return BadRequest(retryResult);
                 }
 
-                job.Status = JobStatus.Processing;
-                job.StartedAt = DateTime.UtcNow;
-
-                var result = await _jobService.ExecuteJobAsync(job);
-
-                job.Status = result.Success ? JobStatus.Completed : JobStatus.Failed;
-                job.CompletedAt = DateTime.UtcNow;
-
-                return Ok(new
-                {
-                    Job = new
-                    {
-                        job.Id,
-                        job.CurrentAttempt,
-                        job.MaxAttempts,
-                        job.Status
-                    },
-                    Result = result,
-                    CanRetry = job.CurrentAttempt < job.MaxAttempts
-                });
+                return Ok(retryResult);
             }
             catch (Exception ex)
             {

@@ -8,6 +8,11 @@ namespace WorkloadManager.Services
 
         public JobBuilder(string type, string name)
         {
+            if (string.IsNullOrWhiteSpace(type))
+                throw new ArgumentException("Job type cannot be empty", nameof(type));
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Job name cannot be empty", nameof(name));
+
             _job = new Job
             {
                 Type = type,
@@ -21,15 +26,17 @@ namespace WorkloadManager.Services
             };
         }
 
-        public JobBuilder WithDescription(string description)
+        public JobBuilder WithDescription(string? description)
         {
-            _job.Description = description;
+            if (!string.IsNullOrWhiteSpace(description))
+                _job.Description = description;
             return this;
         }
 
-        public JobBuilder WithPayload(string payload)
+        public JobBuilder WithPayload(string? payload)
         {
-            _job.Payload = payload;
+            if (!string.IsNullOrWhiteSpace(payload))
+                _job.Payload = payload;
             return this;
         }
 
@@ -55,9 +62,10 @@ namespace WorkloadManager.Services
             return this;
         }
 
-        public JobBuilder WithIdempotencyKey(string key)
+        public JobBuilder WithIdempotencyKey(string? key)
         {
-            _job.IdempotencyKey = key;
+            if (!string.IsNullOrWhiteSpace(key))
+                _job.IdempotencyKey = key;
             return this;
         }
 

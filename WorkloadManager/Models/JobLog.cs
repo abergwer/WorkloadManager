@@ -12,7 +12,7 @@ namespace WorkloadManager.Models
         /// <summary>
         /// Navigation property to Job (optional for JSON serialization)
         /// </summary>
-        public Job Job { get; set; }
+        public Job? Job { get; set; }
         
         /// <summary>
         /// Log level: Info, Warning, Error
@@ -22,12 +22,12 @@ namespace WorkloadManager.Models
         /// <summary>
         /// Log message
         /// </summary>
-        public string Message { get; set; }
+        public required string Message { get; set; }
         
         /// <summary>
         /// Additional metadata as JSON
         /// </summary>
-        public string Metadata { get; set; }
+        public string? Metadata { get; set; }
         
         /// <summary>
         /// Timestamp when the log entry was created

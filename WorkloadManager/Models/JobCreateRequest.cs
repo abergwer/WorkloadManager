@@ -5,22 +5,22 @@ namespace WorkloadManager.Models
         /// <summary>
         /// Type of job (email, webhook, report, batch, etc.)
         /// </summary>
-        public string Type { get; set; }
+        public required string Type { get; set; }
 
         /// <summary>
         /// Job name/title
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// Job description (optional)
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// Input payload as JSON string (optional)
         /// </summary>
-        public string Payload { get; set; }
+        public string? Payload { get; set; }
 
         /// <summary>
         /// Priority level (0-10). Default is 5.
@@ -40,6 +40,6 @@ namespace WorkloadManager.Models
         /// <summary>
         /// Optional idempotency key for duplicate prevention
         /// </summary>
-        public string IdempotencyKey { get; set; }
+        public string? IdempotencyKey { get; set; }
     }
 }

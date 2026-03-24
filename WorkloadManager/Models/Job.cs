@@ -10,7 +10,7 @@
         /// <summary>
         /// Type of job (email, webhook, report, batch, etc.)
         /// </summary>
-        public string Type { get; set; }
+        public required string Type { get; set; }
         
         /// <summary>
         /// Current status of the job
@@ -20,22 +20,22 @@
         /// <summary>
         /// Job name/title
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         
         /// <summary>
         /// Job description
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         
         /// <summary>
         /// Input payload as JSON string
         /// </summary>
-        public string Payload { get; set; }
+        public string? Payload { get; set; }
         
         /// <summary>
         /// Result/output as JSON string (populated after execution)
         /// </summary>
-        public string Result { get; set; }
+        public string? Result { get; set; }
         
         /// <summary>
         /// Priority level (0 = lowest, 10 = highest). Default is 5.
@@ -55,12 +55,12 @@
         /// <summary>
         /// Error message from last failed attempt (if applicable)
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
         
         /// <summary>
         /// Error details/stack trace (if applicable)
         /// </summary>
-        public string ErrorDetails { get; set; }
+        public string? ErrorDetails { get; set; }
         
         /// <summary>
         /// Progress percentage for long-running jobs (0-100)
@@ -95,7 +95,7 @@
         /// <summary>
         /// Idempotency key for preventing duplicate job processing
         /// </summary>
-        public string IdempotencyKey { get; set; }
+        public string? IdempotencyKey { get; set; }
         
         /// <summary>
         /// Navigation property for associated logs
