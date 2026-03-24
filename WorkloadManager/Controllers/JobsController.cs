@@ -51,7 +51,7 @@ namespace WorkloadManager.Controllers
             try
             {
                 var job = await _jobService.CreateJobFromRequestAsync(request);
-                return CreatedAtAction(nameof(GetJob), new { id = job.Id }, new
+                return Ok(new
                 {
                     Message = "Job created successfully",
                     Job = job
