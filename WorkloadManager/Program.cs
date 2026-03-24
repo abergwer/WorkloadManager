@@ -17,6 +17,8 @@ builder.Services.AddScoped<WorkloadRepository>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<JobService>();
 
+builder.Services.AddHostedService<WorkloadManager.Services.BackgroundService.BackgroundWorker>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -41,13 +43,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
-
 
 app.UseAuthorization();
 
