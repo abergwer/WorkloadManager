@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.37027.9 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkloadManager", "WorkloadManager\WorkloadManager.csproj", "{7CAC777A-62C9-4A3E-B0F0-B58E129820DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkloadManager.Tests", "WorkloadManager.Tests\WorkloadManager.Tests.csproj", "{8E5F8A7B-9C4D-4A5E-B1F2-C69D23A9B1C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7CAC777A-62C9-4A3E-B0F0-B58E129820DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CAC777A-62C9-4A3E-B0F0-B58E129820DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CAC777A-62C9-4A3E-B0F0-B58E129820DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E5F8A7B-9C4D-4A5E-B1F2-C69D23A9B1C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E5F8A7B-9C4D-4A5E-B1F2-C69D23A9B1C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E5F8A7B-9C4D-4A5E-B1F2-C69D23A9B1C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E5F8A7B-9C4D-4A5E-B1F2-C69D23A9B1C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
