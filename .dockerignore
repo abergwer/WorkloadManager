@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build results
+bin/
+obj/
+/dist/
+/publish/
+
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+
+# Package files
+*.nupkg
+*.nuget.props
+*.nuget.targets
+
+# npm
+node_modules/
+package-lock.json
+
+# Test Results
+TestResults/
+coverage/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
